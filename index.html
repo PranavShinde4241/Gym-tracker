@@ -93,31 +93,35 @@
 
         .category-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
         }
 
         .cat-card {
             background: var(--card-bg);
-            padding: 25px 15px;
+            padding: 20px 15px;
             border-radius: 16px;
             border: 1px solid var(--border);
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .cat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
         .cat-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
 
-        /* New Edit/Delete Styles */
         .exercise-actions {
             display: flex;
             gap: 5px;
-            margin-top: 10px;
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
         }
-        .btn-edit { background: #64748b; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem; flex: 1; }
-        .btn-delete { background: var(--danger); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem; flex: 1; }
+        .btn-edit { background: #64748b; color: white; border: none; border-radius: 4px; padding: 5px; cursor: pointer; font-size: 0.7rem; flex: 1; }
+        .btn-delete { background: var(--danger); color: white; border: none; border-radius: 4px; padding: 5px; cursor: pointer; font-size: 0.7rem; flex: 1; }
 
         .modal {
             display: none;
@@ -151,6 +155,7 @@
             border-radius: 8px;
             background: var(--bg-color);
             color: var(--text-main);
+            font-size: 1rem;
         }
 
         .btn-primary {
@@ -193,9 +198,9 @@
     </header>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="showSection('dashboard')">🏠 Dashboard</button>
-        <button class="tab-btn" onclick="showSection('workout')">🏋️ Log Workout</button>
-        <button class="tab-btn" onclick="showSection('history')">📜 History</button>
+        <button class="tab-btn active" onclick="showSection('dashboard', this)">🏠 Dashboard</button>
+        <button class="tab-btn" onclick="showSection('workout', this)">🏋️ Log Workout</button>
+        <button class="tab-btn" onclick="showSection('history', this)">📜 History</button>
     </div>
 
     <section id="dashboard">
@@ -250,11 +255,16 @@
 <div id="logModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('logModal')">&times;</span>
-        <h2 id="modalExName">Log Exercise</h2>
+        <h2>Log Workout</h2>
         <div id="prevPerformance" style="color: var(--success); font-size: 0.85rem; margin-bottom: 10px;"></div>
         <form id="logForm">
-            <input type="hidden" id="logExName">
+            <label>Muscle Group</label>
+            <input type="text" id="logCatDisplay" disabled style="background: #eee;">
             <input type="hidden" id="logCat">
+            
+            <label>Exercise</label>
+            <select id="logExDropdown" onchange="updatePrevPerformance()"></select>
+
             <div style="display: flex; gap: 10px;">
                 <div>
                     <label>Sets</label>
@@ -274,13 +284,6 @@
     </div>
 </div>
 
-<div id="helpModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal('helpModal')">&times;</span>
-        <div id="helpContent"></div>
-    </div>
-</div>
-
 <div id="customModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('customModal')">&times;</span>
@@ -297,7 +300,6 @@
 </div>
 
 <script>
-    // --- DATA STRUCTURES ---
     const categories = ["Back", "Chest", "Biceps", "Shoulder", "Triceps", "Abs", "Legs"];
     
     let exercises = JSON.parse(localStorage.getItem('gymFlow_exercises')) || {
@@ -319,11 +321,13 @@
         renderHistory();
     }
 
-    function showSection(id) {
+    function showSection(id, btn) {
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        if (event) event.target.classList.add('active');
+        if(btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
     }
 
     function renderCategories() {
@@ -341,12 +345,9 @@
         document.getElementById('currentCatTitle').innerText = `${cat} Exercises`;
         const list = document.getElementById('exerciseList');
         list.innerHTML = exercises[cat].map((ex, index) => `
-            <div class="cat-card" style="padding: 15px; border-style: dashed;">
+            <div class="cat-card" style="border-style: dashed; cursor: default;">
                 <p style="font-weight: 600; margin-bottom: 10px;">${ex}</p>
-                <div style="display: flex; gap: 5px;">
-                    <button onclick="openLogModal('${cat}', '${ex}')" class="tab-btn" style="background: var(--accent); color:white; flex:1; padding: 5px;">Log</button>
-                    <button onclick="openHelp('${ex}', '${cat}')" class="tab-btn" style="background: var(--border); flex:0.4; padding: 5px;">?</button>
-                </div>
+                <button onclick="openLogModal('${cat}', '${ex}')" class="tab-btn" style="background: var(--accent); color:white; width: 100%; padding: 8px; margin-bottom:5px;">Log</button>
                 <div class="exercise-actions">
                     <button class="btn-edit" onclick="editExercise('${cat}', ${index})">Edit</button>
                     <button class="btn-delete" onclick="deleteExercise('${cat}', ${index})">Delete</button>
@@ -355,9 +356,9 @@
         `).join('');
     }
 
-    // --- LOGIC FOR EDIT/DELETE EXERCISES ---
+    // Edit/Delete Logic
     function deleteExercise(cat, index) {
-        if (confirm(`Delete "${exercises[cat][index]}" from the ${cat} library?`)) {
+        if (confirm(`Delete "${exercises[cat][index]}"?`)) {
             exercises[cat].splice(index, 1);
             localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
             openCategory(cat);
@@ -374,15 +375,27 @@
         }
     }
 
-    function openLogModal(cat, ex) {
+    // Modal Logic with Dynamic Dropdown
+    function openLogModal(cat, selectedEx) {
         const modal = document.getElementById('logModal');
-        document.getElementById('modalExName').innerText = ex;
-        document.getElementById('logExName').value = ex;
         document.getElementById('logCat').value = cat;
+        document.getElementById('logCatDisplay').value = cat;
+
+        // Fill dropdown with all exercises in this category
+        const dropdown = document.getElementById('logExDropdown');
+        dropdown.innerHTML = exercises[cat].map(ex => 
+            `<option value="${ex}" ${ex === selectedEx ? 'selected' : ''}>${ex}</option>`
+        ).join('');
+
+        updatePrevPerformance();
+        modal.style.display = 'flex';
+    }
+
+    function updatePrevPerformance() {
+        const ex = document.getElementById('logExDropdown').value;
         const lastLog = logs.findLast(l => l.exercise === ex);
         document.getElementById('prevPerformance').innerText = lastLog ? 
-            `Last time: ${lastLog.weight}kg for ${lastLog.sets}x${lastLog.reps}` : "No previous data";
-        modal.style.display = 'flex';
+            `Last time: ${lastLog.weight}kg for ${lastLog.sets}x${lastLog.reps}` : "No previous data for this exercise";
     }
 
     document.getElementById('logForm').onsubmit = (e) => {
@@ -392,7 +405,7 @@
             date: new Date().toLocaleDateString(),
             week: getWeekNumber(new Date()),
             category: document.getElementById('logCat').value,
-            exercise: document.getElementById('logExName').value,
+            exercise: document.getElementById('logExDropdown').value,
             sets: document.getElementById('logSets').value,
             reps: document.getElementById('logReps').value,
             weight: document.getElementById('logWeight').value,
@@ -461,24 +474,6 @@
         const select = document.getElementById('filterWeek');
         select.innerHTML = '<option value="">All Weeks</option>' + 
             weeks.map(w => `<option value="${w}">Week ${w}</option>`).join('');
-    }
-
-    function openHelp(ex, cat) {
-        const modal = document.getElementById('helpModal');
-        const content = document.getElementById('helpContent');
-        content.innerHTML = `
-            <span class="tag">${cat}</span>
-            <h2>${ex}</h2>
-            <div style="background:#eee; height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin:15px 0; color:#666;"></div>
-            <h3>Instructions</h3>
-            <p>1. Maintain a neutral spine and engage your core.<br>
-               2. Perform the movement through a full range of motion.<br>
-               3. Control the weight on the eccentric (downward) phase.</p>
-            <br>
-            <h3>Target Muscle</h3>
-            <p>Primary: ${cat}</p>
-        `;
-        modal.style.display = 'flex';
     }
 
     function openCustomModal() { document.getElementById('customModal').style.display = 'flex'; }
