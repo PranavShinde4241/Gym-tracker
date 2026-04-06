@@ -108,7 +108,7 @@
         }
 
         .cat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-        .cat-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        .cat-card i { font-size: 2rem; display: block; margin-bottom: 10px; font-style: normal; }
 
         .modal {
             display: none;
@@ -221,10 +221,10 @@
             </select>
         </div>
         <div class="history-table-container">
-            <table id="historyTable">
+            <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
+                        <th>Details</th>
                         <th>Exercise</th>
                         <th>Sets x Reps</th>
                         <th>Weight</th>
@@ -282,49 +282,13 @@
     const categories = ["Back", "Chest", "Biceps", "Shoulder", "Triceps", "Abs", "Legs"];
     
     let exercises = {
-        "Back": [
-            "Pull-up","Chin-up","Assisted Pull-up","Lat Pulldown","Straight Arm Pulldown",
-            "Barbell Row","T-Bar Row","Seated Cable Row","Single Arm Dumbbell Row",
-            "Deadlift","Rack Pull","Face Pull","Hyperextensions"
-        ],
-        "Chest": [
-            "Bench Press","Incline Bench Press","Decline Bench Press",
-            "Dumbbell Press","Machine Chest Press","Chest Fly",
-            "Incline Dumbbell Fly","Cable Fly (High to Low / Low to High)",
-            "Pec Deck","Push-up","Svend Press"
-        ],
-        "Biceps": [
-            "Barbell Curl","Dumbbell Curl","Hammer Curl","Preacher Curl",
-            "Cable Curl","Incline Dumbbell Curl","Concentration Curl",
-            "Spider Curl","Reverse Curl","Zottman Curl",
-            "Drag Curl","Cable Rope Curl"
-        ],
-        "Shoulder": [
-            "Overhead Press","Arnold Press","Machine Shoulder Press",
-            "Lateral Raise","Cable Lateral Raise","Front Raise",
-            "Rear Delt Fly","Reverse Pec Deck","Upright Row",
-            "Dumbbell Shrugs","Barbell Shrugs","Cuban Press"
-        ],
-        "Triceps": [
-            "Tricep Pushdown","Rope Pushdown","Skull Crusher",
-            "Overhead Extension","Single Arm Cable Pushdown",
-            "Dips","Bench Dips","Close-Grip Bench Press",
-            "Kickbacks","JM Press","Tate Press"
-        ],
-        "Abs": [
-            "Crunch","Decline Crunch","Hanging Leg Raise",
-            "Leg Raise (Lying)","Plank","Side Plank",
-            "Russian Twist","Bicycle Crunch","Mountain Climbers",
-            "Toe Touches","Cable Crunch","Woodchopper",
-            "Flutter Kicks","Ab Wheel Rollout"
-        ],
-        "Legs": [
-            "Squat","Sumo Squat","Goblet Squat","Bulgarian Split Squat",
-            "Leg Press","Hack Squat","Lunges","Step-ups",
-            "Leg Curl","Leg Extension","Romanian Deadlift",
-            "Stiff Leg Deadlift","Glute Bridge","Hip Thrust",
-            "Calf Raise","Seated Calf Raise","Donkey Calf Raise"
-        ]
+        "Back": ["Pull-up","Chin-up","Lat Pulldown","Barbell Row","Seated Cable Row","Deadlift"],
+        "Chest": ["Bench Press","Incline Bench Press","Dumbbell Press","Chest Fly","Push-up"],
+        "Biceps": ["Barbell Curl","Dumbbell Curl","Hammer Curl","Preacher Curl","Cable Curl"],
+        "Shoulder": ["Overhead Press","Arnold Press","Lateral Raise","Rear Delt Fly","Shrugs"],
+        "Triceps": ["Tricep Pushdown","Skull Crusher","Overhead Extension","Dips"],
+        "Abs": ["Crunch","Leg Raise","Plank","Russian Twist","Bicycle Crunch"],
+        "Legs": ["Squat","Leg Press","Lunges","Leg Curl","Leg Extension","Calf Raise"]
     };
 
     let logs = JSON.parse(localStorage.getItem('gymFlow_logs')) || [];
@@ -340,7 +304,7 @@
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-        if (event) event.target.classList.add('active');
+        if (event && event.target.classList.contains('tab-btn')) event.target.classList.add('active');
     }
 
     function renderCategories() {
@@ -393,45 +357,64 @@
     };
 
     function renderHistory() {
-            const query = document.getElementById('searchLog').value.toLowerCase();
-            const weekFilter = document.getElementById('filterWeek').value;
-            const body = document.getElementById('historyBody');
+        const query = document.getElementById('searchLog').value.toLowerCase();
+        const weekFilter = document.getElementById('filterWeek').value;
+        const body = document.getElementById('historyBody');
+        
+        const filtered = logs.filter(l => {
+            const matchesSearch = l.exercise.toLowerCase().includes(query);
+            const matchesWeek = weekFilter === "" || l.week == weekFilter;
+            return matchesSearch && matchesWeek;
+        });
+
+        // Group logs by Date
+        const groups = filtered.reduce((acc, log) => {
+            if (!acc[log.date]) acc[log.date] = [];
+            acc[log.date].push(log);
+            return acc;
+        }, {});
+
+        body.innerHTML = Object.keys(groups).map((date, index) => {
+            const dayLogs = groups[date];
+            const groupId = `details-${index}`;
             
-            // 1. Filter logs based on search and week
-            const filtered = logs.filter(l => {
-                const matchesSearch = l.exercise.toLowerCase().includes(query);
-                const matchesWeek = weekFilter === "" || l.week == weekFilter;
-                return matchesSearch && matchesWeek;
-            });
-    
-            // 2. Group logs by Date
-            const groups = filtered.reduce((acc, log) => {
-                if (!acc[log.date]) acc[log.date] = [];
-                acc[log.date].push(log);
-                return acc;
-            }, {});
-    
-            // 3. Render grouped HTML
-            body.innerHTML = Object.keys(groups).map(date => `
-                <tr style="background: var(--bg-color); font-weight: bold;">
-                    <td colspan="5" style="color: var(--accent); border-bottom: 2px solid var(--accent);">
-                        📅 ${date}
+            return `
+                <tr onclick="toggleDateGroup('${groupId}')" style="cursor: pointer; background: var(--card-bg);">
+                    <td colspan="5" style="padding: 18px; border-left: 4px solid var(--accent); font-weight: 600;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>📅 ${date}</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">
+                                ${dayLogs.length} Exercises <span id="icon-${groupId}">▼</span>
+                            </span>
+                        </div>
                     </td>
                 </tr>
-                ${groups[date].map(l => `
-                    <tr>
-                        <td></td> <td><strong>${l.exercise}</strong><br><small>${l.category}</small></td>
-                        <td>${l.sets} x ${l.reps}</td>
-                        <td>${l.weight}kg</td>
-                        <td>
-                            <button onclick="deleteLog(${l.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                `).join('')}
-            `).join('');
-        }
+                <tbody id="${groupId}" style="display: none; border-bottom: 2px solid var(--border);">
+                    ${dayLogs.map(l => `
+                        <tr style="background: rgba(59, 130, 246, 0.03);">
+                            <td style="border: none;"></td>
+                            <td style="border: none;"><strong>${l.exercise}</strong><br><small>${l.category}</small></td>
+                            <td style="border: none;">${l.sets} x ${l.reps}</td>
+                            <td style="border: none;">${l.weight}kg</td>
+                            <td style="border: none;">
+                                <button onclick="event.stopPropagation(); deleteLog(${l.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+        }).join('');
+    }
+
+    function toggleDateGroup(id) {
+        const group = document.getElementById(id);
+        const icon = document.getElementById(`icon-${id}`);
+        const isHidden = group.style.display === 'none';
+        
+        group.style.display = isHidden ? 'table-row-group' : 'none';
+        icon.innerHTML = isHidden ? '▲' : '▼';
+        icon.parentElement.style.color = isHidden ? 'var(--accent)' : 'var(--text-muted)';
+    }
 
     function deleteLog(id) {
         if(confirm('Delete this entry?')) {
@@ -452,8 +435,8 @@
     }
 
     function getEmoji(cat) {
-        const emojis = { "Back": "", "Chest": "", "Biceps": "", "Shoulder": "", "Triceps": "", "Abs": "", "Legs": "" };
-        return emojis[cat] || "";
+        const emojis = { "Back": "🛶", "Chest": "🦍", "Biceps": "💪", "Shoulder": "🛡️", "Triceps": "🏹", "Abs": "🧱", "Legs": "🦵" };
+        return emojis[cat] || "🏋️";
     }
 
     function getWeekNumber(d) {
