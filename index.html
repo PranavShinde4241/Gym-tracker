@@ -166,7 +166,6 @@
         th, td { padding: 15px; border-bottom: 1px solid var(--border); }
         th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
 
-        .tag { display: inline-block; padding: 4px 8px; background: var(--accent); color: white; border-radius: 4px; font-size: 0.75rem; }
         .hidden { display: none; }
 
         @media (max-width: 600px) {
@@ -184,9 +183,9 @@
     </header>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="showSection('dashboard')">🏠 Dashboard</button>
-        <button class="tab-btn" onclick="showSection('workout')">🏋️ Log Workout</button>
-        <button class="tab-btn" onclick="showSection('history')">📜 History</button>
+        <button class="tab-btn active" onclick="showSection('dashboard', event)">🏠 Dashboard</button>
+        <button class="tab-btn" onclick="showSection('workout', event)">🏋️ Log Workout</button>
+        <button class="tab-btn" onclick="showSection('history', event)">📜 History</button>
     </div>
 
     <section id="dashboard">
@@ -202,15 +201,15 @@
                 <small>kg lifted</small>
             </div>
         </div>
-        <h2>Quick Start</h2>
+        <h2>Muscle Groups</h2>
         <div class="category-grid" id="categoryGrid"></div>
     </section>
 
     <section id="workout" class="hidden">
-        <div style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
-            <button class="btn-primary" onclick="openLogModal()" style="max-width: 300px; font-size: 1.2rem; padding: 20px;">
-                ➕ Add Workout
-            </button>
+        <h2 id="currentCatTitle">Select a Category First</h2>
+        <div id="exerciseList" class="category-grid"></div>
+        <div style="margin-top: 20px;">
+            <button class="btn-primary" onclick="openCustomModal()" style="background: var(--text-muted);">+ Add Custom Exercise</button>
         </div>
     </section>
 
@@ -222,12 +221,13 @@
             </select>
         </div>
         <div class="history-table-container">
-            <table>
+            <table id="historyTable">
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Session Summary</th>
-                        <th>Exercises</th>
+                        <th>Exercise</th>
+                        <th>Sets x Reps</th>
+                        <th>Weight</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -240,164 +240,113 @@
 <div id="logModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('logModal')">&times;</span>
-        <h2 style="margin-bottom: 20px;">Log Workout</h2>
+        <h2 id="modalExName">Log Exercise</h2>
+        <div id="prevPerformance" style="color: var(--success); font-size: 0.85rem; margin-bottom: 10px;"></div>
         <form id="logForm">
-            <label>Muscle Group</label>
-            <select id="logCat" onchange="updateExerciseDropdown()" required>
-                <option value="" disabled selected>Select Muscle Group</option>
-                <option>Back</option>
-                <option>Chest</option>
-                <option>Biceps</option>
-                <option>Shoulder</option>
-                <option>Triceps</option>
-                <option>Abs</option>
-                <option>Legs</option>
-            </select>
-
-            <label>Exercise</label>
-            <select id="logExName" required>
-                <option value="" disabled selected>Select Exercise</option>
-            </select>
-
+            <input type="hidden" id="logExName">
+            <input type="hidden" id="logCat">
+            
             <div style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
+                <div>
                     <label>Sets</label>
-                    <input type="number" id="logSets" required min="1" placeholder="0">
+                    <input type="number" id="logSets" required placeholder="0">
                 </div>
-                <div style="flex: 1;">
+                <div>
                     <label>Reps</label>
-                    <input type="number" id="logReps" required min="1" placeholder="0">
+                    <input type="number" id="logReps" required placeholder="0">
                 </div>
             </div>
-
             <label>Weight (kg)</label>
-            <input type="number" id="logWeight" step="0.25" required min="0" placeholder="0">
-
-            <button type="submit" class="btn-primary" style="margin-top: 10px;">Save Log</button>
+            <input type="number" step="0.25" id="logWeight" required placeholder="0">
+            <label>Notes</label>
+            <textarea id="logNotes" rows="2"></textarea>
+            <button type="submit" class="btn-primary">Save Log</button>
         </form>
     </div>
 </div>
 
-<div id="sessionModal" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <span class="close-modal" onclick="closeModal('sessionModal')">&times;</span>
-        <h2 id="sessionDateTitle" style="margin-bottom: 20px;">Workout Details</h2>
-        <div class="history-table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Exercise</th>
-                        <th>Sets x Reps</th>
-                        <th>Weight</th>
-                    </tr>
-                </thead>
-                <tbody id="sessionDetailBody"></tbody>
-            </table>
-        </div>
+<div id="customModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('customModal')">&times;</span>
+        <h2>Add Custom Exercise</h2>
+        <label>Muscle Group</label>
+        <select id="customCat">
+            <option>Back</option><option>Chest</option><option>Biceps</option>
+            <option>Shoulder</option><option>Triceps</option><option>Abs</option><option>Legs</option>
+        </select>
+        <label>Exercise Name</label>
+        <input type="text" id="customName" placeholder="e.g. Weighted Pullups">
+        <button class="btn-primary" onclick="saveCustomExercise()">Add to Library</button>
     </div>
 </div>
 
 <script>
     const categories = ["Back", "Chest", "Biceps", "Shoulder", "Triceps", "Abs", "Legs"];
     
-    // FULL EXERCISE LIST
-    const exerciseDatabase = {
-        "Back": [
-            "Pull-up", "Chin-up", "Assisted Pull-up", "Lat Pulldown", "Straight Arm Pulldown",
-            "Barbell Row", "T-Bar Row", "Seated Cable Row", "Single Arm Dumbbell Row",
-            "Deadlift", "Rack Pull", "Face Pull", "Hyperextensions"
-        ],
-        "Chest": [
-            "Bench Press", "Incline Bench Press", "Decline Bench Press",
-            "Dumbbell Press", "Machine Chest Press", "Chest Fly",
-            "Incline Dumbbell Fly", "Cable Fly (High to Low / Low to High)",
-            "Pec Deck", "Push-up", "Svend Press"
-        ],
-        "Biceps": [
-            "Barbell Curl", "Dumbbell Curl", "Hammer Curl", "Preacher Curl",
-            "Cable Curl", "Incline Dumbbell Curl", "Concentration Curl",
-            "Spider Curl", "Reverse Curl", "Zottman Curl",
-            "Drag Curl", "Cable Rope Curl"
-        ],
-        "Shoulder": [
-            "Overhead Press", "Arnold Press", "Machine Shoulder Press",
-            "Lateral Raise", "Cable Lateral Raise", "Front Raise",
-            "Rear Delt Fly", "Reverse Pec Deck", "Upright Row",
-            "Dumbbell Shrugs", "Barbell Shrugs", "Cuban Press"
-        ],
-        "Triceps": [
-            "Tricep Pushdown", "Rope Pushdown", "Skull Crusher",
-            "Overhead Extension", "Single Arm Cable Pushdown",
-            "Dips", "Bench Dips", "Close-Grip Bench Press",
-            "Kickbacks", "JM Press", "Tate Press"
-        ],
-        "Abs": [
-            "Crunch", "Decline Crunch", "Hanging Leg Raise",
-            "Leg Raise (Lying)", "Plank", "Side Plank",
-            "Russian Twist", "Bicycle Crunch", "Mountain Climbers",
-            "Toe Touches", "Cable Crunch", "Woodchopper",
-            "Flutter Kicks", "Ab Wheel Rollout"
-        ],
-        "Legs": [
-            "Squat", "Sumo Squat", "Goblet Squat", "Bulgarian Split Squat",
-            "Leg Press", "Hack Squat", "Lunges", "Step-ups",
-            "Leg Curl", "Leg Extension", "Romanian Deadlift",
-            "Stiff Leg Deadlift", "Glute Bridge", "Hip Thrust",
-            "Calf Raise", "Seated Calf Raise", "Donkey Calf Raise"
-        ]
+    // Load existing exercises or use defaults
+    let exercises = JSON.parse(localStorage.getItem('gymFlow_exercises')) || {
+        "Back": ["Pull-up", "Lat Pulldown", "Barbell Row", "Deadlift", "Seated Cable Row"],
+        "Chest": ["Bench Press", "Incline DB Press", "Chest Fly", "Push-up"],
+        "Biceps": ["Barbell Curl", "Hammer Curl", "Preacher Curl"],
+        "Shoulder": ["Overhead Press", "Lateral Raise", "Rear Delt Fly"],
+        "Triceps": ["Tricep Pushdown", "Skull Crusher", "Dips"],
+        "Abs": ["Plank", "Leg Raise", "Cable Crunch"],
+        "Legs": ["Squat", "Leg Press", "Romanian Deadlift", "Calf Raise"]
     };
 
     let logs = JSON.parse(localStorage.getItem('gymFlow_logs')) || [];
 
     function init() {
-        // Sync local storage with current database to ensure all exercises appear
-        localStorage.setItem('gymFlow_exercises', JSON.stringify(exerciseDatabase));
-        
         renderCategories();
         updateStats();
         populateWeekFilter();
         renderHistory();
     }
 
-    function showSection(id) {
+    function showSection(id, event) {
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.nav-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-        if (event && event.target.classList.contains('tab-btn')) event.target.classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if(event) event.target.classList.add('active');
     }
 
     function renderCategories() {
         const grid = document.getElementById('categoryGrid');
         grid.innerHTML = categories.map(cat => `
-            <div class="cat-card" onclick="showSection('workout'); openLogModal('${cat}');">
+            <div class="cat-card" onclick="openCategory('${cat}')">
                 <i>${getEmoji(cat)}</i>
                 <strong>${cat}</strong>
             </div>
         `).join('');
     }
 
-    function updateExerciseDropdown() {
-        const category = document.getElementById('logCat').value;
-        const exerciseSelect = document.getElementById('logExName');
-        exerciseSelect.innerHTML = '<option value="" disabled selected>Select Exercise</option>';
+    function openCategory(cat) {
+        showSection('workout');
+        document.getElementById('currentCatTitle').innerText = `${cat} Exercises`;
+        const list = document.getElementById('exerciseList');
         
-        if (exerciseDatabase[category]) {
-            exerciseDatabase[category].forEach(ex => {
-                const option = document.createElement('option');
-                option.value = ex;
-                option.textContent = ex;
-                exerciseSelect.appendChild(option);
-            });
-        }
+        // This ensures custom exercises are rendered in the category grid
+        list.innerHTML = exercises[cat].map(ex => `
+            <div class="cat-card" style="padding: 15px; border-style: dashed;">
+                <p style="font-weight: 600; margin-bottom: 10px;">${ex}</p>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="openLogModal('${cat}', '${ex}')" class="tab-btn" style="background: var(--accent); color:white; flex:1; padding: 5px;">Log</button>
+                </div>
+            </div>
+        `).join('');
     }
 
-    function openLogModal(preSelectCat = "") {
-        document.getElementById('logForm').reset();
-        if (preSelectCat) {
-            document.getElementById('logCat').value = preSelectCat;
-            updateExerciseDropdown();
-        }
-        document.getElementById('logModal').style.display = 'flex';
+    function openLogModal(cat, ex) {
+        const modal = document.getElementById('logModal');
+        document.getElementById('modalExName').innerText = ex;
+        document.getElementById('logExName').value = ex;
+        document.getElementById('logCat').value = cat;
+        
+        const lastLog = [...logs].reverse().find(l => l.exercise === ex);
+        document.getElementById('prevPerformance').innerText = lastLog ? 
+            `Last time: ${lastLog.weight}kg for ${lastLog.sets}x${lastLog.reps}` : "No previous data";
+
+        modal.style.display = 'flex';
     }
 
     document.getElementById('logForm').onsubmit = (e) => {
@@ -410,77 +359,53 @@
             exercise: document.getElementById('logExName').value,
             sets: document.getElementById('logSets').value,
             reps: document.getElementById('logReps').value,
-            weight: document.getElementById('logWeight').value
+            weight: document.getElementById('logWeight').value,
+            notes: document.getElementById('logNotes').value
         };
         logs.unshift(newLog);
         saveData();
         closeModal('logModal');
         updateStats();
         renderHistory();
-        alert('Workout Logged!');
     };
+
+    function saveCustomExercise() {
+        const cat = document.getElementById('customCat').value;
+        const name = document.getElementById('customName').value;
+        if(name) {
+            exercises[cat].push(name);
+            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+            openCategory(cat); // Instantly refresh the grid
+            closeModal('customModal');
+            document.getElementById('customName').value = "";
+        }
+    }
 
     function renderHistory() {
         const query = document.getElementById('searchLog').value.toLowerCase();
         const weekFilter = document.getElementById('filterWeek').value;
         const body = document.getElementById('historyBody');
         
-        const groupedLogs = logs.reduce((acc, log) => {
-            const date = log.date;
-            if (!acc[date]) acc[date] = [];
-            acc[date].push(log);
-            return acc;
-        }, {});
+        const filtered = logs.filter(l => {
+            const matchesSearch = l.exercise.toLowerCase().includes(query);
+            const matchesWeek = weekFilter === "" || l.week == weekFilter;
+            return matchesSearch && matchesWeek;
+        });
 
-        const dates = Object.keys(groupedLogs).sort((a, b) => new Date(b) - new Date(a));
-
-        body.innerHTML = dates.map(date => {
-            const sessionLogs = groupedLogs[date];
-            const week = sessionLogs[0].week;
-
-            const matchesSearch = sessionLogs.some(l => l.exercise.toLowerCase().includes(query));
-            const matchesWeek = weekFilter === "" || week == weekFilter;
-
-            if (!matchesSearch || !matchesWeek) return '';
-
-            const exerciseCount = sessionLogs.length;
-            const mainMuscle = sessionLogs[0].category;
-
-            return `
-                <tr onclick="viewSession('${date}')" style="cursor: pointer;">
-                    <td><strong>${date}</strong></td>
-                    <td>${mainMuscle} session</td>
-                    <td><span class="tag">${exerciseCount} Exercises</span></td>
-                    <td>
-                        <button onclick="event.stopPropagation(); deleteSession('${date}')" 
-                                style="color:var(--danger); border:none; background:none; cursor:pointer;">
-                            Delete
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    function viewSession(date) {
-        const sessionLogs = logs.filter(l => l.date === date);
-        const detailBody = document.getElementById('sessionDetailBody');
-        document.getElementById('sessionDateTitle').innerText = `Workout: ${date}`;
-        
-        detailBody.innerHTML = sessionLogs.map(l => `
+        body.innerHTML = filtered.map(l => `
             <tr>
+                <td><small>${l.date}</small></td>
                 <td><strong>${l.exercise}</strong><br><small>${l.category}</small></td>
                 <td>${l.sets} x ${l.reps}</td>
                 <td>${l.weight}kg</td>
+                <td><button onclick="deleteLog(${l.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">Delete</button></td>
             </tr>
         `).join('');
-        
-        document.getElementById('sessionModal').style.display = 'flex';
     }
 
-    function deleteSession(date) {
-        if(confirm(`Delete all entries for ${date}?`)) {
-            logs = logs.filter(l => l.date !== date);
+    function deleteLog(id) {
+        if(confirm('Delete this entry?')) {
+            logs = logs.filter(l => l.id !== id);
             saveData();
             renderHistory();
             updateStats();
@@ -515,6 +440,7 @@
             weeks.map(w => `<option value="${w}">Week ${w}</option>`).join('');
     }
 
+    function openCustomModal() { document.getElementById('customModal').style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function saveData() { localStorage.setItem('gymFlow_logs', JSON.stringify(logs)); }
 
