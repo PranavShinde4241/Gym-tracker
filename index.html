@@ -485,15 +485,29 @@
 
     function openCustomModal() { document.getElementById('customModal').style.display = 'flex'; }
 
-    function saveCustomExercise() {
+function saveCustomExercise() {
         const cat = document.getElementById('customCat').value;
-        const name = document.getElementById('customName').value;
-        if(name) {
-            exercises[cat].push(name);
-            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
-            openCategory(cat);
-            closeModal('customModal');
-            document.getElementById('customName').value = "";
+        const dropdown = document.getElementById('customName');
+        const name = dropdown.value; // Gets the selected value from dropdown
+
+        if(name && name !== "") {
+            // Check if exercise already exists in that category to prevent duplicates
+            if (!exercises[cat].includes(name)) {
+                exercises[cat].push(name);
+                localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+                
+                // Refresh the view
+                openCategory(cat);
+                closeModal('customModal');
+                
+                // Reset dropdown to the placeholder
+                dropdown.selectedIndex = 0;
+            } else {
+                alert("This exercise is already in your library!");
+                closeModal('customModal');
+            }
+        } else {
+            alert("Please select an exercise from the list.");
         }
     }
 
