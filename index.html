@@ -393,26 +393,45 @@
     };
 
     function renderHistory() {
-        const query = document.getElementById('searchLog').value.toLowerCase();
-        const weekFilter = document.getElementById('filterWeek').value;
-        const body = document.getElementById('historyBody');
-        
-        const filtered = logs.filter(l => {
-            const matchesSearch = l.exercise.toLowerCase().includes(query);
-            const matchesWeek = weekFilter === "" || l.week == weekFilter;
-            return matchesSearch && matchesWeek;
-        });
-
-        body.innerHTML = filtered.map(l => `
-            <tr>
-                <td><small>${l.date}</small></td>
-                <td><strong>${l.exercise}</strong><br><small>${l.category}</small></td>
-                <td>${l.sets} x ${l.reps}</td>
-                <td>${l.weight}kg</td>
-                <td><button onclick="deleteLog(${l.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">Delete</button></td>
-            </tr>
-        `).join('');
-    }
+            const query = document.getElementById('searchLog').value.toLowerCase();
+            const weekFilter = document.getElementById('filterWeek').value;
+            const body = document.getElementById('historyBody');
+            
+            // 1. Filter logs based on search and week
+            const filtered = logs.filter(l => {
+                const matchesSearch = l.exercise.toLowerCase().includes(query);
+                const matchesWeek = weekFilter === "" || l.week == weekFilter;
+                return matchesSearch && matchesWeek;
+            });
+    
+            // 2. Group logs by Date
+            const groups = filtered.reduce((acc, log) => {
+                if (!acc[log.date]) acc[log.date] = [];
+                acc[log.date].push(log);
+                return acc;
+            }, {});
+    
+            // 3. Render grouped HTML
+            body.innerHTML = Object.keys(groups).map(date => `
+                <tr style="background: var(--bg-color); font-weight: bold;">
+                    <td colspan="5" style="color: var(--accent); border-bottom: 2px solid var(--accent);">
+                        📅 ${date}
+                    </td>
+                </tr>
+                ${groups[date].map(l => `
+                    <tr>
+                        <td></td> <td><strong>${l.exercise}</strong><br><small>${l.category}</small></td>
+                        <td>${l.sets} x ${l.reps}</td>
+                        <td>${l.weight}kg</td>
+                        <td>
+                            <button onclick="deleteLog(${l.id})" style="color:var(--danger); border:none; background:none; cursor:pointer;">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            `).join('');
+        }
 
     function deleteLog(id) {
         if(confirm('Delete this entry?')) {
