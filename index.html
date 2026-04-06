@@ -284,14 +284,23 @@
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('customModal')">&times;</span>
         <h2>Add Custom Exercise</h2>
+        
         <label>Muscle Group</label>
         <select id="customCat">
             <option>Back</option><option>Chest</option><option>Biceps</option>
             <option>Shoulder</option><option>Triceps</option><option>Abs</option><option>Legs</option>
         </select>
-        <label>Exercise Name</label>
-        <input type="text" id="customName" placeholder="e.g. Weighted Pullups">
-        <button class="btn-primary" onclick="saveCustomExercise()">Add to Library</button>
+        
+        <label>Exercise</label>
+        <select id="customName">
+            <option value="" disabled selected>Select an exercise</option>
+            <option>Dips (Weighted)</option>
+            <option>Machine Fly</option>
+            <option>Cable Crossover</option>
+            <option>Diamond Push-ups</option>
+            </select>
+        
+        <button class="btn-primary" onclick="saveCustomExercise()" style="margin-top: 15px;">Add to Library</button>
     </div>
 </div>
 
