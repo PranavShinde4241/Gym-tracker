@@ -300,41 +300,37 @@
 <script>
     const categories = ["Back", "Chest", "Biceps", "Shoulder", "Triceps", "Abs", "Legs"];
     
-    let exercises = JSON.parse(localStorage.getItem('gymFlow_exercises')) || {
+    // FULL EXERCISE LIST
+    const exerciseDatabase = {
         "Back": [
             "Pull-up", "Chin-up", "Assisted Pull-up", "Lat Pulldown", "Straight Arm Pulldown",
             "Barbell Row", "T-Bar Row", "Seated Cable Row", "Single Arm Dumbbell Row",
             "Deadlift", "Rack Pull", "Face Pull", "Hyperextensions"
         ],
-    
         "Chest": [
             "Bench Press", "Incline Bench Press", "Decline Bench Press",
             "Dumbbell Press", "Machine Chest Press", "Chest Fly",
             "Incline Dumbbell Fly", "Cable Fly (High to Low / Low to High)",
             "Pec Deck", "Push-up", "Svend Press"
         ],
-    
         "Biceps": [
             "Barbell Curl", "Dumbbell Curl", "Hammer Curl", "Preacher Curl",
             "Cable Curl", "Incline Dumbbell Curl", "Concentration Curl",
             "Spider Curl", "Reverse Curl", "Zottman Curl",
             "Drag Curl", "Cable Rope Curl"
         ],
-    
         "Shoulder": [
             "Overhead Press", "Arnold Press", "Machine Shoulder Press",
             "Lateral Raise", "Cable Lateral Raise", "Front Raise",
             "Rear Delt Fly", "Reverse Pec Deck", "Upright Row",
             "Dumbbell Shrugs", "Barbell Shrugs", "Cuban Press"
         ],
-    
         "Triceps": [
             "Tricep Pushdown", "Rope Pushdown", "Skull Crusher",
             "Overhead Extension", "Single Arm Cable Pushdown",
             "Dips", "Bench Dips", "Close-Grip Bench Press",
             "Kickbacks", "JM Press", "Tate Press"
         ],
-    
         "Abs": [
             "Crunch", "Decline Crunch", "Hanging Leg Raise",
             "Leg Raise (Lying)", "Plank", "Side Plank",
@@ -342,7 +338,6 @@
             "Toe Touches", "Cable Crunch", "Woodchopper",
             "Flutter Kicks", "Ab Wheel Rollout"
         ],
-    
         "Legs": [
             "Squat", "Sumo Squat", "Goblet Squat", "Bulgarian Split Squat",
             "Leg Press", "Hack Squat", "Lunges", "Step-ups",
@@ -355,6 +350,9 @@
     let logs = JSON.parse(localStorage.getItem('gymFlow_logs')) || [];
 
     function init() {
+        // Sync local storage with current database to ensure all exercises appear
+        localStorage.setItem('gymFlow_exercises', JSON.stringify(exerciseDatabase));
+        
         renderCategories();
         updateStats();
         populateWeekFilter();
@@ -383,8 +381,8 @@
         const exerciseSelect = document.getElementById('logExName');
         exerciseSelect.innerHTML = '<option value="" disabled selected>Select Exercise</option>';
         
-        if (exercises[category]) {
-            exercises[category].forEach(ex => {
+        if (exerciseDatabase[category]) {
+            exerciseDatabase[category].forEach(ex => {
                 const option = document.createElement('option');
                 option.value = ex;
                 option.textContent = ex;
@@ -427,7 +425,6 @@
         const weekFilter = document.getElementById('filterWeek').value;
         const body = document.getElementById('historyBody');
         
-        // Group logs by Date
         const groupedLogs = logs.reduce((acc, log) => {
             const date = log.date;
             if (!acc[date]) acc[date] = [];
@@ -441,7 +438,6 @@
             const sessionLogs = groupedLogs[date];
             const week = sessionLogs[0].week;
 
-            // Search filtering
             const matchesSearch = sessionLogs.some(l => l.exercise.toLowerCase().includes(query));
             const matchesWeek = weekFilter === "" || week == weekFilter;
 
@@ -453,7 +449,7 @@
             return `
                 <tr onclick="viewSession('${date}')" style="cursor: pointer;">
                     <td><strong>${date}</strong></td>
-                    <td>${mainMuscle} centered session</td>
+                    <td>${mainMuscle} session</td>
                     <td><span class="tag">${exerciseCount} Exercises</span></td>
                     <td>
                         <button onclick="event.stopPropagation(); deleteSession('${date}')" 
