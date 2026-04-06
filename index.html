@@ -361,23 +361,27 @@
         const weekFilter = document.getElementById('filterWeek').value;
         const body = document.getElementById('historyBody');
         
-        const filtered = logs.filter(l => {
-            const matchesSearch = l.exercise.toLowerCase().includes(query);
-            const matchesWeek = weekFilter === "" || l.week == weekFilter;
-            return matchesSearch && matchesWeek;
-        });
-
-        // Group logs by Date
-        const groups = filtered.reduce((acc, log) => {
+        // Group logs by Date (same as first code)
+        const groupedLogs = logs.reduce((acc, log) => {
             if (!acc[log.date]) acc[log.date] = [];
             acc[log.date].push(log);
             return acc;
         }, {});
-
-        body.innerHTML = Object.keys(groups).map((date, index) => {
-            const dayLogs = groups[date];
+    
+        const dates = Object.keys(groupedLogs).sort((a, b) => new Date(b) - new Date(a));
+    
+        body.innerHTML = dates.map((date, index) => {
+            const dayLogs = groupedLogs[date];
+            const week = dayLogs[0].week;
+    
+            // ✅ Apply SAME visibility logic as first code
+            const matchesSearch = dayLogs.some(l => l.exercise.toLowerCase().includes(query));
+            const matchesWeek = weekFilter === "" || week == weekFilter;
+    
+            if (!matchesSearch || !matchesWeek) return '';
+    
             const groupId = `details-${index}`;
-            
+    
             return `
                 <tr onclick="toggleDateGroup('${groupId}')" style="cursor: pointer; background: var(--card-bg);">
                     <td colspan="5" style="padding: 18px; border-left: 4px solid var(--accent); font-weight: 600;">
