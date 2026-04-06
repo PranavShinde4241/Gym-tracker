@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 25.8.4.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
+		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;GymFlow | Modern Fitness Tracker&lt;/title&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme=&quot;dark&quot;] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        /* Layout */
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card h3 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-card p { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .cat-card {
+            background: var(--card-bg);
+            padding: 25px 15px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .cat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .cat-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
+
+        /* Forms &amp; Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 1.5rem; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        /* History Table */
+        .history-table-container {
+            overflow-x: auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+
+        .hidden { display: none; }
+
+        /* Help Styles */
+        .help-img { width: 100%; border-radius: 12px; margin-bottom: 15px; }
+        .tag { display: inline-block; padding: 4px 8px; background: var(--accent); color: white; border-radius: 4px; font-size: 0.75rem; margin-bottom: 10px; }
+
+        @media (max-width: 600px) {
+            .nav-tabs { font-size: 0.9rem; }
+            .container { padding: 15px; }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div class=&quot;container&quot;&gt;
+    &lt;header&gt;
+        &lt;h1&gt;GymFlow&lt;/h1&gt;
+        &lt;button id=&quot;themeToggle&quot; class=&quot;tab-btn&quot; style=&quot;border: 1px solid var(--border)&quot;&gt;🌓 Mode&lt;/button&gt;
+    &lt;/header&gt;
+
+    &lt;div class=&quot;nav-tabs&quot;&gt;
+        &lt;button class=&quot;tab-btn active&quot; onclick=&quot;showSection('dashboard')&quot;&gt;🏠 Dashboard&lt;/button&gt;
+        &lt;button class=&quot;tab-btn&quot; onclick=&quot;showSection('workout')&quot;&gt;🏋️ Log Workout&lt;/button&gt;
+        &lt;button class=&quot;tab-btn&quot; onclick=&quot;showSection('history')&quot;&gt;📜 History&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;section id=&quot;dashboard&quot;&gt;
+        &lt;div class=&quot;stats-grid&quot;&gt;
+            &lt;div class=&quot;stat-card&quot;&gt;
+                &lt;h3&gt;This Week&lt;/h3&gt;
+                &lt;p id=&quot;statWorkouts&quot;&gt;0&lt;/p&gt;
+                &lt;small&gt;Workouts&lt;/small&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;stat-card&quot;&gt;
+                &lt;h3&gt;Total Volume&lt;/h3&gt;
+                &lt;p id=&quot;statVolume&quot;&gt;0&lt;/p&gt;
+                &lt;small&gt;kg lifted&lt;/small&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;h2&gt;Muscle Groups&lt;/h2&gt;
+        &lt;div class=&quot;category-grid&quot; id=&quot;categoryGrid&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section id=&quot;workout&quot; class=&quot;hidden&quot;&gt;
+        &lt;h2 id=&quot;currentCatTitle&quot;&gt;Select a Category First&lt;/h2&gt;
+        &lt;div id=&quot;exerciseList&quot; class=&quot;category-grid&quot;&gt;&lt;/div&gt;
+        &lt;div style=&quot;margin-top: 20px;&quot;&gt;
+            &lt;button class=&quot;btn-primary&quot; onclick=&quot;openCustomModal()&quot; style=&quot;background: var(--text-muted);&quot;&gt;+ Add Custom Exercise&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section id=&quot;history&quot; class=&quot;hidden&quot;&gt;
+        &lt;div style=&quot;display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;&quot;&gt;
+            &lt;input type=&quot;text&quot; id=&quot;searchLog&quot; placeholder=&quot;Search exercise...&quot; style=&quot;flex: 1; min-width: 200px;&quot; oninput=&quot;renderHistory()&quot;&gt;
+            &lt;select id=&quot;filterWeek&quot; onchange=&quot;renderHistory()&quot; style=&quot;flex: 0.5;&quot;&gt;
+                &lt;option value=&quot;&quot;&gt;All Weeks&lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;history-table-container&quot;&gt;
+            &lt;table id=&quot;historyTable&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Date&lt;/th&gt;
+                        &lt;th&gt;Exercise&lt;/th&gt;
+                        &lt;th&gt;Sets x Reps&lt;/th&gt;
+                        &lt;th&gt;Weight&lt;/th&gt;
+                        &lt;th&gt;Actions&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody id=&quot;historyBody&quot;&gt;&lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+    &lt;/section&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;logModal&quot; class=&quot;modal&quot;&gt;
+    &lt;div class=&quot;modal-content&quot;&gt;
+        &lt;span class=&quot;close-modal&quot; onclick=&quot;closeModal('logModal')&quot;&gt;&amp;times;&lt;/span&gt;
+        &lt;h2 id=&quot;modalExName&quot;&gt;Log Exercise&lt;/h2&gt;
+        &lt;div id=&quot;prevPerformance&quot; style=&quot;color: var(--success); font-size: 0.85rem; margin-bottom: 10px;&quot;&gt;&lt;/div&gt;
+        &lt;form id=&quot;logForm&quot;&gt;
+            &lt;input type=&quot;hidden&quot; id=&quot;logExName&quot;&gt;
+            &lt;input type=&quot;hidden&quot; id=&quot;logCat&quot;&gt;
+            &lt;div style=&quot;display: flex; gap: 10px;&quot;&gt;
+                &lt;div&gt;
+                    &lt;label&gt;Sets&lt;/label&gt;
+                    &lt;input type=&quot;number&quot; id=&quot;logSets&quot; required placeholder=&quot;0&quot;&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                    &lt;label&gt;Reps&lt;/label&gt;
+                    &lt;input type=&quot;number&quot; id=&quot;logReps&quot; required placeholder=&quot;0&quot;&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;label&gt;Weight (kg)&lt;/label&gt;
+            &lt;input type=&quot;number&quot; id=&quot;logWeight&quot; required placeholder=&quot;0&quot;&gt;
+            &lt;label&gt;Notes&lt;/label&gt;
+            &lt;textarea id=&quot;logNotes&quot; rows=&quot;2&quot;&gt;&lt;/textarea&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;btn-primary&quot;&gt;Save Log&lt;/button&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;helpModal&quot; class=&quot;modal&quot;&gt;
+    &lt;div class=&quot;modal-content&quot;&gt;
+        &lt;span class=&quot;close-modal&quot; onclick=&quot;closeModal('helpModal')&quot;&gt;&amp;times;&lt;/span&gt;
+        &lt;div id=&quot;helpContent&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;customModal&quot; class=&quot;modal&quot;&gt;
+    &lt;div class=&quot;modal-content&quot;&gt;
+        &lt;span class=&quot;close-modal&quot; onclick=&quot;closeModal('customModal')&quot;&gt;&amp;times;&lt;/span&gt;
+        &lt;h2&gt;Add Custom Exercise&lt;/h2&gt;
+        &lt;label&gt;Muscle Group&lt;/label&gt;
+        &lt;select id=&quot;customCat&quot;&gt;
+            &lt;option&gt;Back&lt;/option&gt;&lt;option&gt;Chest&lt;/option&gt;&lt;option&gt;Biceps&lt;/option&gt;
+            &lt;option&gt;Shoulder&lt;/option&gt;&lt;option&gt;Triceps&lt;/option&gt;&lt;option&gt;Abs&lt;/option&gt;&lt;option&gt;Legs&lt;/option&gt;
+        &lt;/select&gt;
+        &lt;label&gt;Exercise Name&lt;/label&gt;
+        &lt;input type=&quot;text&quot; id=&quot;customName&quot; placeholder=&quot;e.g. Weighted Pullups&quot;&gt;
+        &lt;button class=&quot;btn-primary&quot; onclick=&quot;saveCustomExercise()&quot;&gt;Add to Library&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    // --- DATA STRUCTURES ---
+    const categories = [&quot;Back&quot;, &quot;Chest&quot;, &quot;Biceps&quot;, &quot;Shoulder&quot;, &quot;Triceps&quot;, &quot;Abs&quot;, &quot;Legs&quot;];
+    
+    let exercises = JSON.parse(localStorage.getItem('gymFlow_exercises')) || {
+        &quot;Back&quot;: [&quot;Pull-up&quot;, &quot;Lat Pulldown&quot;, &quot;Barbell Row&quot;, &quot;Deadlift&quot;, &quot;Seated Cable Row&quot;],
+        &quot;Chest&quot;: [&quot;Bench Press&quot;, &quot;Incline DB Press&quot;, &quot;Chest Fly&quot;, &quot;Push-up&quot;],
+        &quot;Biceps&quot;: [&quot;Barbell Curl&quot;, &quot;Hammer Curl&quot;, &quot;Preacher Curl&quot;],
+        &quot;Shoulder&quot;: [&quot;Overhead Press&quot;, &quot;Lateral Raise&quot;, &quot;Rear Delt Fly&quot;],
+        &quot;Triceps&quot;: [&quot;Tricep Pushdown&quot;, &quot;Skull Crusher&quot;, &quot;Dips&quot;],
+        &quot;Abs&quot;: [&quot;Plank&quot;, &quot;Leg Raise&quot;, &quot;Cable Crunch&quot;],
+        &quot;Legs&quot;: [&quot;Squat&quot;, &quot;Leg Press&quot;, &quot;Romanian Deadlift&quot;, &quot;Calf Raise&quot;]
+    };
+
+    let logs = JSON.parse(localStorage.getItem('gymFlow_logs')) || [];
+
+    // --- INITIALIZATION ---
+    function init() {
+        renderCategories();
+        updateStats();
+        populateWeekFilter();
+        renderHistory();
+    }
+
+    // --- NAVIGATION ---
+    function showSection(id) {
+        document.querySelectorAll('section').forEach(s =&gt; s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b =&gt; b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // --- RENDERING ---
+    function renderCategories() {
+        const grid = document.getElementById('categoryGrid');
+        grid.innerHTML = categories.map(cat =&gt; `
+            &lt;div class=&quot;cat-card&quot; onclick=&quot;openCategory('${cat}')&quot;&gt;
+                &lt;i&gt;${getEmoji(cat)}&lt;/i&gt;
+                &lt;strong&gt;${cat}&lt;/strong&gt;
+            &lt;/div&gt;
+        `).join('');
+    }
+
+    function openCategory(cat) {
+        showSection('workout');
+        document.getElementById('currentCatTitle').innerText = `${cat} Exercises`;
+        const list = document.getElementById('exerciseList');
+        list.innerHTML = exercises[cat].map(ex =&gt; `
+            &lt;div class=&quot;cat-card&quot; style=&quot;padding: 15px; border-style: dashed;&quot;&gt;
+                &lt;p style=&quot;font-weight: 600; margin-bottom: 10px;&quot;&gt;${ex}&lt;/p&gt;
+                &lt;div style=&quot;display: flex; gap: 5px;&quot;&gt;
+                    &lt;button onclick=&quot;openLogModal('${cat}', '${ex}')&quot; class=&quot;tab-btn&quot; style=&quot;background: var(--accent); color:white; flex:1; padding: 5px;&quot;&gt;Log&lt;/button&gt;
+                    &lt;button onclick=&quot;openHelp('${ex}', '${cat}')&quot; class=&quot;tab-btn&quot; style=&quot;background: var(--border); flex:0.4; padding: 5px;&quot;&gt;?&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        `).join('');
+    }
+
+    // --- LOGGING LOGIC ---
+    function openLogModal(cat, ex) {
+        const modal = document.getElementById('logModal');
+        document.getElementById('modalExName').innerText = ex;
+        document.getElementById('logExName').value = ex;
+        document.getElementById('logCat').value = cat;
+        
+        // Find last performance
+        const lastLog = logs.findLast(l =&gt; l.exercise === ex);
+        document.getElementById('prevPerformance').innerText = lastLog ? 
+            `Last time: ${lastLog.weight}kg for ${lastLog.sets}x${lastLog.reps}` : &quot;No previous data&quot;;
+
+        modal.style.display = 'flex';
+    }
+
+    document.getElementById('logForm').onsubmit = (e) =&gt; {
+        e.preventDefault();
+        const newLog = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            week: getWeekNumber(new Date()),
+            category: document.getElementById('logCat').value,
+            exercise: document.getElementById('logExName').value,
+            sets: document.getElementById('logSets').value,
+            reps: document.getElementById('logReps').value,
+            weight: document.getElementById('logWeight').value,
+            notes: document.getElementById('logNotes').value
+        };
+        logs.unshift(newLog);
+        saveData();
+        closeModal('logModal');
+        updateStats();
+        renderHistory();
+        alert('Workout Logged!');
+    };
+
+    // --- HISTORY &amp; STATS ---
+    function renderHistory() {
+        const query = document.getElementById('searchLog').value.toLowerCase();
+        const weekFilter = document.getElementById('filterWeek').value;
+        const body = document.getElementById('historyBody');
+        
+        const filtered = logs.filter(l =&gt; {
+            const matchesSearch = l.exercise.toLowerCase().includes(query);
+            const matchesWeek = weekFilter === &quot;&quot; || l.week == weekFilter;
+            return matchesSearch &amp;&amp; matchesWeek;
+        });
+
+        body.innerHTML = filtered.map(l =&gt; `
+            &lt;tr&gt;
+                &lt;td&gt;&lt;small&gt;${l.date}&lt;/small&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;strong&gt;${l.exercise}&lt;/strong&gt;&lt;br&gt;&lt;small&gt;${l.category}&lt;/small&gt;&lt;/td&gt;
+                &lt;td&gt;${l.sets} x ${l.reps}&lt;/td&gt;
+                &lt;td&gt;${l.weight}kg&lt;/td&gt;
+                &lt;td&gt;&lt;button onclick=&quot;deleteLog(${l.id})&quot; style=&quot;color:var(--danger); border:none; background:none; cursor:pointer;&quot;&gt;Delete&lt;/button&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+        `).join('');
+    }
+
+    function deleteLog(id) {
+        if(confirm('Delete this entry?')) {
+            logs = logs.filter(l =&gt; l.id !== id);
+            saveData();
+            renderHistory();
+            updateStats();
+        }
+    }
+
+    function updateStats() {
+        const currentWeek = getWeekNumber(new Date());
+        const weekLogs = logs.filter(l =&gt; l.week === currentWeek);
+        
+        // Count unique dates this week
+        const uniqueDays = new Set(weekLogs.map(l =&gt; l.date)).size;
+        document.getElementById('statWorkouts').innerText = uniqueDays;
+
+        // Calculate Volume
+        const volume = weekLogs.reduce((acc, curr) =&gt; acc + (curr.sets * curr.reps * curr.weight), 0);
+        document.getElementById('statVolume').innerText = volume.toLocaleString();
+    }
+
+    // --- HELPERS ---
+    function getEmoji(cat) {
+        const emojis = { &quot;Back&quot;: &quot;🛶&quot;, &quot;Chest&quot;: &quot;🦍&quot;, &quot;Biceps&quot;: &quot;💪&quot;, &quot;Shoulder&quot;: &quot;🛡️&quot;, &quot;Triceps&quot;: &quot;🏹&quot;, &quot;Abs&quot;: &quot;🧱&quot;, &quot;Legs&quot;: &quot;🦵&quot; };
+        return emojis[cat] || &quot;🏋️&quot;;
+    }
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function populateWeekFilter() {
+        const weeks = [...new Set(logs.map(l =&gt; l.week))].sort((a,b) =&gt; b-a);
+        const select = document.getElementById('filterWeek');
+        select.innerHTML = '&lt;option value=&quot;&quot;&gt;All Weeks&lt;/option&gt;' + 
+            weeks.map(w =&gt; `&lt;option value=&quot;${w}&quot;&gt;Week ${w}&lt;/option&gt;`).join('');
+    }
+
+    function openHelp(ex, cat) {
+        const modal = document.getElementById('helpModal');
+        const content = document.getElementById('helpContent');
+        content.innerHTML = `
+            &lt;span class=&quot;tag&quot;&gt;${cat}&lt;/span&gt;
+            &lt;h2&gt;${ex}&lt;/h2&gt;
+            &lt;div style=&quot;background:#eee; height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin:15px 0; color:#666;&quot;&gt;
+                
+            &lt;/div&gt;
+            &lt;h3&gt;Instructions&lt;/h3&gt;
+            &lt;p&gt;1. Maintain a neutral spine and engage your core.&lt;br&gt;
+               2. Perform the movement through a full range of motion.&lt;br&gt;
+               3. Control the weight on the eccentric (downward) phase.&lt;/p&gt;
+            &lt;br&gt;
+            &lt;h3&gt;Target Muscle&lt;/h3&gt;
+            &lt;p&gt;Primary: ${cat}&lt;/p&gt;
+        `;
+        modal.style.display = 'flex';
+    }
+
+    function openCustomModal() { document.getElementById('customModal').style.display = 'flex'; }
+
+    function saveCustomExercise() {
+        const cat = document.getElementById('customCat').value;
+        const name = document.getElementById('customName').value;
+        if(name) {
+            exercises[cat].push(name);
+            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+            openCategory(cat);
+            closeModal('customModal');
+            document.getElementById('customName').value = &quot;&quot;;
+        }
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function saveData() { localStorage.setItem('gymFlow_logs', JSON.stringify(logs)); }
+
+    // Theme Toggle
+    document.getElementById('themeToggle').onclick = () =&gt; {
+        const current = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    };
+
+    window.onclick = (event) =&gt; {
+        if (event.target.className === 'modal') closeModal(event.target.id);
+    };
+
+    init();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</body>
+</html>
