@@ -37,7 +37,6 @@
             transition: var(--transition);
         }
 
-        /* Layout */
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         
         header {
@@ -74,7 +73,6 @@
             color: white;
         }
 
-        /* Dashboard Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -93,7 +91,6 @@
         .stat-card h3 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
         .stat-card p { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
 
-        /* Category Grid */
         .category-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -113,7 +110,15 @@
         .cat-card:hover { border-color: var(--accent); transform: translateY(-3px); }
         .cat-card i { font-size: 2rem; display: block; margin-bottom: 10px; }
 
-        /* Forms & Modals */
+        /* New Edit/Delete Styles */
+        .exercise-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .btn-edit { background: #64748b; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem; flex: 1; }
+        .btn-delete { background: var(--danger); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem; flex: 1; }
+
         .modal {
             display: none;
             position: fixed;
@@ -159,7 +164,6 @@
             font-weight: 600;
         }
 
-        /* History Table */
         .history-table-container {
             overflow-x: auto;
             background: var(--card-bg);
@@ -172,9 +176,6 @@
         th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
 
         .hidden { display: none; }
-
-        /* Help Styles */
-        .help-img { width: 100%; border-radius: 12px; margin-bottom: 15px; }
         .tag { display: inline-block; padding: 4px 8px; background: var(--accent); color: white; border-radius: 4px; font-size: 0.75rem; margin-bottom: 10px; }
 
         @media (max-width: 600px) {
@@ -284,23 +285,14 @@
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('customModal')">&times;</span>
         <h2>Add Custom Exercise</h2>
-        
         <label>Muscle Group</label>
         <select id="customCat">
             <option>Back</option><option>Chest</option><option>Biceps</option>
             <option>Shoulder</option><option>Triceps</option><option>Abs</option><option>Legs</option>
         </select>
-        
-        <label>Exercise</label>
-        <select id="customName">
-            <option value="" disabled selected>Select an exercise</option>
-            <option>Dips (Weighted)</option>
-            <option>Machine Fly</option>
-            <option>Cable Crossover</option>
-            <option>Diamond Push-ups</option>
-            </select>
-        
-        <button class="btn-primary" onclick="saveCustomExercise()" style="margin-top: 15px;">Add to Library</button>
+        <label>Exercise Name</label>
+        <input type="text" id="customName" placeholder="e.g. Weighted Pullups">
+        <button class="btn-primary" onclick="saveCustomExercise()">Add to Library</button>
     </div>
 </div>
 
@@ -320,7 +312,6 @@
 
     let logs = JSON.parse(localStorage.getItem('gymFlow_logs')) || [];
 
-    // --- INITIALIZATION ---
     function init() {
         renderCategories();
         updateStats();
@@ -328,15 +319,13 @@
         renderHistory();
     }
 
-    // --- NAVIGATION ---
     function showSection(id) {
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        if (event) event.target.classList.add('active');
     }
 
-    // --- RENDERING ---
     function renderCategories() {
         const grid = document.getElementById('categoryGrid');
         grid.innerHTML = categories.map(cat => `
@@ -351,29 +340,48 @@
         showSection('workout');
         document.getElementById('currentCatTitle').innerText = `${cat} Exercises`;
         const list = document.getElementById('exerciseList');
-        list.innerHTML = exercises[cat].map(ex => `
+        list.innerHTML = exercises[cat].map((ex, index) => `
             <div class="cat-card" style="padding: 15px; border-style: dashed;">
                 <p style="font-weight: 600; margin-bottom: 10px;">${ex}</p>
                 <div style="display: flex; gap: 5px;">
                     <button onclick="openLogModal('${cat}', '${ex}')" class="tab-btn" style="background: var(--accent); color:white; flex:1; padding: 5px;">Log</button>
                     <button onclick="openHelp('${ex}', '${cat}')" class="tab-btn" style="background: var(--border); flex:0.4; padding: 5px;">?</button>
                 </div>
+                <div class="exercise-actions">
+                    <button class="btn-edit" onclick="editExercise('${cat}', ${index})">Edit</button>
+                    <button class="btn-delete" onclick="deleteExercise('${cat}', ${index})">Delete</button>
+                </div>
             </div>
         `).join('');
     }
 
-    // --- LOGGING LOGIC ---
+    // --- LOGIC FOR EDIT/DELETE EXERCISES ---
+    function deleteExercise(cat, index) {
+        if (confirm(`Delete "${exercises[cat][index]}" from the ${cat} library?`)) {
+            exercises[cat].splice(index, 1);
+            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+            openCategory(cat);
+        }
+    }
+
+    function editExercise(cat, index) {
+        const oldName = exercises[cat][index];
+        const newName = prompt("Edit exercise name:", oldName);
+        if (newName && newName.trim() !== "" && newName !== oldName) {
+            exercises[cat][index] = newName.trim();
+            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+            openCategory(cat);
+        }
+    }
+
     function openLogModal(cat, ex) {
         const modal = document.getElementById('logModal');
         document.getElementById('modalExName').innerText = ex;
         document.getElementById('logExName').value = ex;
         document.getElementById('logCat').value = cat;
-        
-        // Find last performance
         const lastLog = logs.findLast(l => l.exercise === ex);
         document.getElementById('prevPerformance').innerText = lastLog ? 
             `Last time: ${lastLog.weight}kg for ${lastLog.sets}x${lastLog.reps}` : "No previous data";
-
         modal.style.display = 'flex';
     }
 
@@ -398,18 +406,15 @@
         alert('Workout Logged!');
     };
 
-    // --- HISTORY & STATS ---
     function renderHistory() {
         const query = document.getElementById('searchLog').value.toLowerCase();
         const weekFilter = document.getElementById('filterWeek').value;
         const body = document.getElementById('historyBody');
-        
         const filtered = logs.filter(l => {
             const matchesSearch = l.exercise.toLowerCase().includes(query);
             const matchesWeek = weekFilter === "" || l.week == weekFilter;
             return matchesSearch && matchesWeek;
         });
-
         body.innerHTML = filtered.map(l => `
             <tr>
                 <td><small>${l.date}</small></td>
@@ -433,17 +438,12 @@
     function updateStats() {
         const currentWeek = getWeekNumber(new Date());
         const weekLogs = logs.filter(l => l.week === currentWeek);
-        
-        // Count unique dates this week
         const uniqueDays = new Set(weekLogs.map(l => l.date)).size;
         document.getElementById('statWorkouts').innerText = uniqueDays;
-
-        // Calculate Volume
         const volume = weekLogs.reduce((acc, curr) => acc + (curr.sets * curr.reps * curr.weight), 0);
         document.getElementById('statVolume').innerText = volume.toLocaleString();
     }
 
-    // --- HELPERS ---
     function getEmoji(cat) {
         const emojis = { "Back": "🛶", "Chest": "🦍", "Biceps": "💪", "Shoulder": "🛡️", "Triceps": "🏹", "Abs": "🧱", "Legs": "🦵" };
         return emojis[cat] || "🏋️";
@@ -469,9 +469,7 @@
         content.innerHTML = `
             <span class="tag">${cat}</span>
             <h2>${ex}</h2>
-            <div style="background:#eee; height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin:15px 0; color:#666;">
-                
-            </div>
+            <div style="background:#eee; height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin:15px 0; color:#666;"></div>
             <h3>Instructions</h3>
             <p>1. Maintain a neutral spine and engage your core.<br>
                2. Perform the movement through a full range of motion.<br>
@@ -485,37 +483,21 @@
 
     function openCustomModal() { document.getElementById('customModal').style.display = 'flex'; }
 
-function saveCustomExercise() {
+    function saveCustomExercise() {
         const cat = document.getElementById('customCat').value;
-        const dropdown = document.getElementById('customName');
-        const name = dropdown.value; // Gets the selected value from dropdown
-
-        if(name && name !== "") {
-            // Check if exercise already exists in that category to prevent duplicates
-            if (!exercises[cat].includes(name)) {
-                exercises[cat].push(name);
-                localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
-                
-                // Refresh the view
-                openCategory(cat);
-                closeModal('customModal');
-                
-                // Reset dropdown to the placeholder
-                dropdown.selectedIndex = 0;
-            } else {
-                alert("This exercise is already in your library!");
-                closeModal('customModal');
-            }
-        } else {
-            alert("Please select an exercise from the list.");
+        const name = document.getElementById('customName').value;
+        if(name) {
+            exercises[cat].push(name);
+            localStorage.setItem('gymFlow_exercises', JSON.stringify(exercises));
+            openCategory(cat);
+            closeModal('customModal');
+            document.getElementById('customName').value = "";
         }
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
     function saveData() { localStorage.setItem('gymFlow_logs', JSON.stringify(logs)); }
 
-    // Theme Toggle
     document.getElementById('themeToggle').onclick = () => {
         const current = document.documentElement.getAttribute('data-theme');
         document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
